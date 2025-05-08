@@ -57,6 +57,7 @@
     "@spacebudz/lucid": "npm:@jsr/spacebudz__lucid@^0.20.4",
     "big.js": "^6.2.1",
     "bignumber.js": "^9.1.2",
+    "dotenv": "^16.5.0",
     "exponential-backoff": "^3.1.1",
     "ioredis": "^5.4.1",
     "remeda": "^2.12.1",

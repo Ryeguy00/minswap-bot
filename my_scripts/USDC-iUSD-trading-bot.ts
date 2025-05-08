@@ -10,8 +10,36 @@ import {
 } from "@minswap/sdk";
 import 'dotenv/config';
 
+import fs from 'fs';
+
 function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function displayBalances(utxos: any) {
+
+    if (!utxos || utxos.length === 0) {
+        console.log("No UTXOs found at the address.");
+        return;
+    }
+
+    const balances: { [unit: string]: bigint } = {};
+
+    // Iterate through UTXOs and sum up asset quantities
+    for (const utxo of utxos) {
+        for (const asset of utxo.assets) {
+            if (!balances[asset.unit]) {
+                balances[asset.unit] = BigInt(0);
+            }
+            balances[asset.unit] += BigInt(asset.quantity);
+        }
+    }
+
+    // Display the balances
+    console.log("Balances at address:");
+    for (const [unit, quantity] of Object.entries(balances)) {
+        console.log(`- ${unit}: ${quantity}`);
+    }
 }
 
 async function stablePoolTradingBot() {
@@ -77,9 +105,12 @@ async function stablePoolTradingBot() {
             throw new Error("could not find utxos");
         }
         console.log("utxos length: " + utxos.length);
+        /*
         for (let i = 0; i < utxos.length; i++) {
-            console.log("utxos[" + i + "]: " + utxos[i]);
+            console.dir(utxos[i], { depth: null });
         }
+        */
+        displayBalances(utxos);
         // IDEA: check if utxos contain enough iUSD or USDC to swap
 
         // initialize variables
@@ -128,20 +159,11 @@ async function stablePoolTradingBot() {
             if (currentPrice > iUSDtoUSDCpriceTarget && iUSDtoUSDC) {
                 console.log("iUSD to USDC trade is profitable. Continuing...");
                 console.log("Attempting to swap", actualIn, "iUSD for", actualOut, "USDC");
-                iUSDtoUSDC = false;
-
-                // Set new amountIn for the next iteration
-                amountIn = amountOut; // no need to multiply by USDC_AMOUNT again since amountOut is already in USDC
                 break
             }
             else if (currentPrice > USDCtoIUSDpriceTarget && !iUSDtoUSDC) {
                 console.log("USDC to iUSD trade is profitable. Continuing...");
                 console.log("Attempting to swap", actualIn, "USDC for", actualOut, "iUSD");
-                iUSDtoUSDC = true;
-
-                // Set new amountIn for the next iteration
-                amountIn = BigInt(tradeAmount) * iUSD_AMOUNT; // reset amountIn to the original trade amount
-                console.log("amountIn:", Number(amountIn) / Number(iUSD_AMOUNT));
                 break
             }
             else { // not profitable enough
@@ -185,6 +207,16 @@ async function stablePoolTradingBot() {
         const txId = await signedTx.submit();
         console.info(`Transaction submitted successfully: ${txId}`);
         console.log("Waiting for order to be processed...");
+
+        // Set new amountIn for the next iteration
+        if (iUSDtoUSDC) {
+            amountIn = amountOut; // no need to multiply by USDC_AMOUNT again since amountOut is already in USDC\
+        }
+        else {
+            amountIn = BigInt(tradeAmount) * iUSD_AMOUNT; // reset amountIn to the original trade amount
+        }
+        iUSDtoUSDC = !iUSDtoUSDC; // swap the direction for the next iteration
+
         await sleep(10 * 60 * 1000); // wait 10 minutes for order to be processed
 
         //IDEA: update utxos here

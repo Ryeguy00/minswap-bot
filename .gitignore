@@ -6,3 +6,4 @@ coverage
 
 package-lock.json
 .env
+transaction.cbor
