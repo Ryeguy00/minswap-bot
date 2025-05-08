@@ -52,6 +52,7 @@
     "@cardano-ogmios/client": "^6.5.0",
     "@cardano-ogmios/schema": "^6.5.0",
     "@maestro-org/typescript-sdk": "^1.6.3",
+    "@minswap/sdk": "^0.4.3",
     "@minswap/tiny-invariant": "^1.2.0",
     "@spacebudz/lucid": "npm:@jsr/spacebudz__lucid@^0.20.4",
     "big.js": "^6.2.1",
