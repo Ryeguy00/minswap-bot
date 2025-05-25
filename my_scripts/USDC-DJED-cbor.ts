@@ -13,7 +13,6 @@ import 'dotenv/config';
 import fs from 'fs';
 
 function displayBalances(utxos: any) {
-
     if (!utxos || utxos.length === 0) {
         console.log("No UTXOs found at the address.");
         return;
@@ -23,11 +22,17 @@ function displayBalances(utxos: any) {
 
     // Iterate through UTXOs and sum up asset quantities
     for (const utxo of utxos) {
-        for (const asset of utxo.assets) {
-            if (!balances[asset.unit]) {
-                balances[asset.unit] = BigInt(0);
+        if (!utxo.assets || typeof utxo.assets !== "object") {
+            console.warn("UTXO does not have a valid 'assets' property:", utxo);
+            continue;
+        }
+
+        // Iterate through the assets object
+        for (const [unit, quantity] of Object.entries(utxo.assets)) {
+            if (!balances[unit]) {
+                balances[unit] = BigInt(0);
             }
-            balances[asset.unit] += BigInt(asset.quantity);
+            balances[unit] += BigInt(quantity as number);
         }
     }
 
@@ -43,7 +48,7 @@ async function stableswaplimitOrder() {
     const blockfrostProjectId = process.env.MAIN_API as string;
     const blockfrostUrl = "https://cardano-mainnet.blockfrost.io/api/v0";
 
-    const address = process.env.MAIN_ADDRESS as string;
+    const address = process.env.HW_ADDRESS as string;
     //const seed = process.env.MAIN_SEED as string;
 
     // USDC has 8 decimals, and DJED has 6 decimals.
@@ -67,7 +72,7 @@ async function stableswaplimitOrder() {
         })
     );
     // This is LP asset of USDC-DJED pool.
-    const lpAsset = Asset.fromString("ac49e0969d76ed5aa9e9861a77be65f4fc29e9a979dc4c37a99eb8f4.555344432d444a45442d534c50");
+    const lpAsset = Asset.fromString("ac49e0969d76ed5aa9e9861a77be65f4fc29e9a979dc4c37a99eb8f4555344432d444a45442d534c50");
     const config = StableswapConstant.getConfigByLpAsset(
         lpAsset,
         networkId
@@ -109,6 +114,8 @@ async function stableswaplimitOrder() {
         throw new Error("could not find utxos");
     }
     console.log("number of utxos: " + utxos.length);
+    console.log("UTXO structure:", JSON.stringify(utxos, (key, value) =>
+        typeof value === "bigint" ? value.toString() : value, 2));
     displayBalances(utxos);
 
 

@@ -17,7 +17,6 @@ function sleep(ms: number): Promise<void> {
 }
 
 function displayBalances(utxos: any) {
-
     if (!utxos || utxos.length === 0) {
         console.log("No UTXOs found at the address.");
         return;
@@ -27,11 +26,17 @@ function displayBalances(utxos: any) {
 
     // Iterate through UTXOs and sum up asset quantities
     for (const utxo of utxos) {
-        for (const asset of utxo.assets) {
-            if (!balances[asset.unit]) {
-                balances[asset.unit] = BigInt(0);
+        if (!utxo.assets || typeof utxo.assets !== "object") {
+            console.warn("UTXO does not have a valid 'assets' property:", utxo);
+            continue;
+        }
+
+        // Iterate through the assets object
+        for (const [unit, quantity] of Object.entries(utxo.assets)) {
+            if (!balances[unit]) {
+                balances[unit] = BigInt(0);
             }
-            balances[asset.unit] += BigInt(asset.quantity);
+            balances[unit] += BigInt(quantity as number);
         }
     }
 
