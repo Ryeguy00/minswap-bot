@@ -80,7 +80,7 @@ async function stableswaplimitOrder() {
 
     // Assume we're starting with DJED to USDC trade.
     var DJEDtoUSDC = true;
-    var tradeAmount = 1;      // adjust this to change the starting swap amount
+    var tradeAmount = 500;      // adjust this to change the starting swap amount
 
     // These will let us know which asset we are swapping in and out.
     var inIndex: number;
@@ -132,6 +132,22 @@ async function stableswaplimitOrder() {
                 assetInIndex: BigInt(inIndex),
                 assetOutIndex: BigInt(outIndex),
                 minimumAssetOut: amountOut,
+            },
+            {
+                lpAsset: lpAsset,
+                type: StableOrder.StepType.SWAP,
+                assetInAmount: amountIn,
+                assetInIndex: BigInt(inIndex),
+                assetOutIndex: BigInt(outIndex),
+                minimumAssetOut: amountOut,
+            },
+            {
+                lpAsset: lpAsset,
+                type: StableOrder.StepType.SWAP,
+                assetInAmount: amountIn*2n,
+                assetInIndex: BigInt(inIndex),
+                assetOutIndex: BigInt(outIndex),
+                minimumAssetOut: amountOut*2n,
             },
         ],
     });
